@@ -15,6 +15,7 @@ on:
   pull_request:
     branches:
       - main        # Runs on every Pull Request targeting main
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions tab
 
 jobs:
   terraform:
