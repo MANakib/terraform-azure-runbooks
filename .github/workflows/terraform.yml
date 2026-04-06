@@ -1,0 +1,68 @@
+# terraform.yml
+# This is your GitHub Actions pipeline.
+# It runs automatically every time you push code to GitHub.
+#
+# What is GitHub Actions?
+# It's a robot that lives in GitHub. When you push code, it wakes up,
+# runs your Terraform commands, and reports back whether everything worked.
+
+name: Terraform CI
+
+on:
+  push:
+    branches:
+      - main        # Runs on every push to main branch
+  pull_request:
+    branches:
+      - main        # Runs on every Pull Request targeting main
+
+jobs:
+  terraform:
+    name: Terraform Plan & Apply
+    runs-on: ubuntu-latest  # Runs on a fresh Linux machine in GitHub's cloud
+
+    env:
+      # These secrets are stored in GitHub (Settings → Secrets)
+      # Never hardcode credentials in code!
+      ARM_CLIENT_ID:       ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET:   ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID:       ${{ secrets.ARM_TENANT_ID }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # Downloads your code onto the GitHub Actions runner machine
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.7"
+        # Installs Terraform on the runner machine
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+        # Downloads the Azure provider and sets up the working directory
+
+      - name: Terraform Format Check
+        working-directory: terraform
+        run: terraform fmt -check -recursive
+        # Fails if any .tf file is not properly formatted
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+        # Checks that your configuration is syntactically valid
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+        # Shows what Terraform WOULD create/change/destroy — does NOT apply yet
+
+      # Apply only runs on push to main (not on pull requests)
+      - name: Terraform Apply
+        working-directory: terraform
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
+        # Actually creates the resources in Azure
