@@ -6,8 +6,8 @@
 terraform {
   required_providers {
     azurerm = {
-      source  = "hashicorp/azurerm"  # Where to download the provider from
-      version = "~> 3.0"             # Use any 3.x version
+      source  = "hashicorp/azurerm" # Where to download the provider from
+      version = "~> 3.0"            # Use any 3.x version
     }
   }
 
